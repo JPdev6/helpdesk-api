@@ -1,61 +1,59 @@
-# helpdesk-api
+# Helpdesk Ticket API
 
-FastAPI service for creating and managing support tickets. Tickets are stored in PostgreSQL with SQLAlchemy 2.0.
+## Project overview
 
-## Requirements
+A small REST API for support tickets: create, list, update, and delete tickets stored in PostgreSQL. The service is built with FastAPI and SQLAlchemy, and the whole stack (API + database) runs with Docker Compose.
 
-- Python 3.12
-- Docker (optional, for PostgreSQL + API)
+## Features
 
-## Run with Docker Compose
+- `POST /tickets` — create a ticket
+- `GET /tickets` — list tickets, filter by `status` and `priority`, search in title and description
+- `GET /tickets/{id}` — get one ticket
+- `PATCH /tickets/{id}` — update a ticket
+- `DELETE /tickets/{id}` — delete a ticket
+- Interactive OpenAPI docs at `/docs`
+- Tables created automatically on startup
+
+Ticket fields: title, description, status (`open`, `in_progress`, `done`), priority (`low`, `medium`, `high`), category, timestamps.
+
+## Tech stack
+
+Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2.0, PostgreSQL (psycopg), Docker Compose, pytest (SQLite in tests), GitHub Actions.
+
+## How to run
 
 ```bash
 docker compose up --build
 ```
 
-The API is available at `http://localhost:8000`. Interactive docs: `http://localhost:8000/docs`.
+API: [http://localhost:8000](http://localhost:8000)  
+Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-Tables are created automatically when the API starts.
-
-## Run locally
-
-Create a virtual environment and install dependencies:
+Tests use in-memory SQLite (no Postgres required):
 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-Start PostgreSQL (for example with Docker):
-
-```bash
-docker compose up postgres
-```
-
-Then start the API:
-
-```bash
-export DATABASE_URL=postgresql+psycopg://helpdesk:helpdesk@localhost:5432/helpdesk
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-If `DATABASE_URL` is not set, the app defaults to `postgresql+psycopg://helpdesk:helpdesk@localhost:5432/helpdesk`.
-
-## Tests
-
-Tests use an in-memory SQLite database and do not require PostgreSQL:
-
-```bash
 pytest
 ```
 
-## Endpoints
+## What I built
 
-| Method | Path | Description |
-| --- | --- | --- |
-| `POST` | `/tickets` | Create a ticket |
-| `GET` | `/tickets` | List tickets (`status`, `priority`, `search`) |
-| `GET` | `/tickets/{id}` | Get one ticket |
-| `PATCH` | `/tickets/{id}` | Update a ticket |
-| `DELETE` | `/tickets/{id}` | Delete a ticket |
+I designed the ticket data model and the REST API, then implemented the service end to end: models, schemas, endpoints, Docker setup, and tests. I used Cursor as an AI assistant and reviewed, tested, and adjusted every change myself.
+
+## Key decisions
+
+- **FastAPI** for request validation and generated OpenAPI docs, so the API is easy to try without extra tooling.
+- **PostgreSQL** as a production-style relational store for tickets.
+- **SQLite in tests** so pytest is fast and does not need a running database.
+- **Docker Compose** so the API and Postgres start with one command.
+- **AI-first workflow** with Cursor: I specified the design, then reviewed and tested the generated code instead of treating the model as the source of truth.
+
+## What I would improve
+
+- Authentication (who can create or close tickets)
+- Pagination on the ticket list
+- Alembic migrations instead of `create_all` on startup
+- User roles (agent vs. requester)
+- A Flutter frontend for a full client–server demo
